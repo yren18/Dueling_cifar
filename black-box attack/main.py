@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 # from zo_attack import *
 from zo_attack import pgd_attack, zo_attack, r_attack, rzo_attack, imshow
 import zo_attack as _zo
-import cifar10_models as cm
+# import cifar10_models as cm
 
 import os
 
