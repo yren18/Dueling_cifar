@@ -8,6 +8,7 @@ import torchvision.datasets as dsets
 import json
 import torch
 import time
+import os
 
 ## CUDA usage
 use_cuda = True
@@ -70,14 +71,23 @@ def make_dataloaders(params):
     return trainloader, testloader
 
 
-def imshow(img, label):
+def imshow(img, label, methodName):
+    save_dir = os.path.join(os.getcwd(), "results")
+    os.makedirs(save_dir, exist_ok=True)
+
     img = img / 2 + 0.5  # unnormalize
     npimg = img.numpy()
     plt.figure(figsize=(3, 3.3))
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.suptitle(label, fontsize=20)
 
-    plt.show()
+    # plt.show()
+    # save figure
+    save_path = os.path.join(save_dir, f"{methodName}_{label}.png")
+    plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    print(f"Saved image to {save_path}")
+
+    plt.close()
 
 
 # projection gradient attack

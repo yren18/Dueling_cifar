@@ -92,7 +92,6 @@ def main():
 
     transform_validation = transforms.Compose([transforms.ToTensor()])
 
-    # >>> MINIMAL FIX: use data_root and download=True <<<
     trainset = torchvision.datasets.CIFAR10(root=data_root, train=True, transform=transform_train, download=True)
     testset  = torchvision.datasets.CIFAR10(root=data_root, train=False, transform=transform_validation, download=True)
 
@@ -109,38 +108,7 @@ def main():
 
     # get some random training images
     dataiter = iter(testloader)
-    # images, labels = dataiter.next()
-    #
-    # images = images.to(device)
-    # labels = labels.to(device)
-    # outputs = model(images)
-    #
-    # _, pre = torch.max(outputs.data, 1)
-    # # show images
-    # print("True Image & Predicted Label")
-    # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
-
-    # total = 0
-    # correct = 0
-    # for images, labels in dataiter:
-    #     images = images.to(device)
-    #     labels = labels.to(device)
-    #     outputs = model(images)
-    #
-    #     _, pre = torch.max(outputs.data, 1)
-    #
-    #     total += 1
-    #     correct += (pre == labels).sum()
-    #     print('total images processed: %s, correct: %s' % (total, correct.cpu().data.numpy()))
-    #
-    # precision = correct.cpu().data.numpy()/ total
-    # print('model precision:', precision)
-    #
-    #     imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True))
-    #     print("True Label: ", [classes[i] for i in pre])
-
-    # print('Accuracy of test text: %f %%' % (100 * float(correct) / total))
-
+ 
     # Attack
     print("Attack Image & Predicted Label")
 
@@ -152,14 +120,15 @@ def main():
     for images, labels in dataiter:
         total += 1
         # print("Processing image number: %s" % total)
-        if total == 9933:
+        # if total == 9933:
+        if total == 1:
             # show image and label
             images = images.to(device)
             labels = labels.to(device)
             print("True Image & Predicted Label")
             outputs = model(images)
             _, pre = torch.max(outputs.data, 1)
-            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'Original')
             print("True label: ", [classes[i] for i in labels.cpu().data.numpy()])
 
             # PGD attack
@@ -173,7 +142,7 @@ def main():
             total += 1
             correct += (pre == labels).sum()
 
-            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'PGD')
             distance = images.cpu() - ori_images.cpu()
             print('PGD-attack: Distance of the attack example to original image:', np.linalg.norm(distance.cpu().data.numpy()))
             ori_images = ori_images.to(device)
@@ -189,7 +158,7 @@ def main():
             # total += 1
             # correct += (pre == labels).sum()
 
-            # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
+            # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'ZO')
             # distance = images.cpu() - ori_images.cpu()
             # print('ZO-attack: Distance of the attack example to original image:',
             #       np.linalg.norm(distance.cpu().data.numpy()))
@@ -204,24 +173,24 @@ def main():
             total += 1
             correct += (pre == labels).sum()
 
-            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RGD')
             distance = images.cpu() - ori_images.cpu()
             print('R-attack: Distance of the attack example to original image:', np.linalg.norm(distance.cpu().data.numpy()))
 
-            # Riemannian ZO attack
-            images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
-            labels = labels.to(device)
-            outputs = model(images)
+            # # Riemannian ZO attack
+            # images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
+            # labels = labels.to(device)
+            # outputs = model(images)
 
-            _, pre = torch.max(outputs.data, 1)
+            # _, pre = torch.max(outputs.data, 1)
 
-            total += 1
-            correct += (pre == labels).sum()
+            # total += 1
+            # correct += (pre == labels).sum()
 
-            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre])
-            distance = images.cpu() - ori_images.cpu()
-            print('RZO-attack: Distance of the attack example to original image:',
-                  np.linalg.norm(distance.cpu().data.numpy()))
+            # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RZO')
+            # distance = images.cpu() - ori_images.cpu()
+            # print('RZO-attack: Distance of the attack example to original image:',
+            #       np.linalg.norm(distance.cpu().data.numpy()))
 
             break
 
@@ -231,7 +200,7 @@ def main():
     ax.plot(range(i1), val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(range(i2), val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(range(i3), val_perturb_r[:i3], 'k--',label='White-box Riemannian')
-    ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
+    # ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
     ax.set(xlabel='Number of iteration', ylabel='Loss value',
            title='Loss value')
     ax.legend(loc='upper left')
@@ -243,7 +212,7 @@ def main():
     ax.plot(time_perturb_1[:i1], val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(time_perturb_2[:i2], val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(time_perturb_3[:i3], val_perturb_r[:i3], 'k--', label='White-box Riemannian')
-    ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
+    # ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
     ax.set(xlabel='CPU time', ylabel='Loss value',
            title='Loss value')
     ax.legend(loc='upper left')
