@@ -71,7 +71,7 @@ def make_dataloaders(params):
     return trainloader, testloader
 
 
-def imshow(img, label, methodName):
+def imshow(img, label, idx, methodName):
     save_dir = os.path.join(os.getcwd(), "results")
     os.makedirs(save_dir, exist_ok=True)
 
@@ -83,7 +83,7 @@ def imshow(img, label, methodName):
 
     # plt.show()
     # save figure
-    save_path = os.path.join(save_dir, f"{methodName}_{label}.png")
+    save_path = os.path.join(save_dir, f"{idx}_{methodName}_{label}.png")
     plt.savefig(save_path, dpi=300, bbox_inches='tight')
     print(f"Saved image to {save_path}")
 
@@ -235,7 +235,7 @@ def zo_attack(model, images, labels, eps=0.05, iters=1500, alpha=5e-4, m=500, mu
 
 
 # zeros order Riemannian attack
-def rzo_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_iter=1000, pre_m=100, iters=1000, mu=1e-6,
+def rzo_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.1, pre_iter=1000, pre_m=100, iters=1000, mu=1e-6,
                m=500):
     # eta is the original pertubation
     # the starting point is actually images+eta
@@ -344,7 +344,7 @@ def rzo_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_
     return images, k + i, val_perturb, time_perturb
 
 #Riemannian Dueling attack
-def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_iter=1000, pre_m=100, iters=1000, mu=1e-6,
+def rd_attack(model, images, labels, eps=0.05, alpha=1e-1, pre_alpha=0.5, pre_iter=1000, pre_m=10, iters=1000, mu=1e-6,
                m=500):
     # eta is the original pertubation
     # the starting point is actually images+eta
@@ -362,12 +362,12 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
     time_perturb = np.zeros(pre_iter + iters)
     k = 0
 
-    # --- running best-so-far (lower is better) ---
     best = float("-inf")
+    start = time.time()
+
 
     print("Riemannian Dueling attack running, maximum perturbation norm", max_norm.cpu().data.numpy())
     print("Scheme 1: escaping from the original image")
-    start = time.time()
     for k in range(pre_iter):
         eta = torch.zeros(images.size()).to(device)
         outputs = model(images)
@@ -382,13 +382,38 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
         # zeroth-order estimation of Riemannian gradient
         grad_estimate = torch.zeros(images.size()).to(device)
         for j in range(pre_m):
+            # temp = torch.randn(images.size()).to(device)
+            # temp_eta = eta + mu * temp
+            # temp_eta = temp_eta.to(device)
+            # temp_image = ori_images + temp_eta
+            # outputs = model(temp_image)
+            # cost_temp = loss(outputs, labels).to(device)
+            # grad_estimate = grad_estimate + (cost_temp - cost) / mu * temp
+            # grad_estimate = grad_estimate.detach_()
+            
             temp = torch.randn(images.size()).to(device)
-            temp_eta = eta + mu * temp
-            temp_eta = temp_eta.to(device)
-            temp_image = ori_images + temp_eta
-            outputs = model(temp_image)
-            cost_temp = loss(outputs, labels).to(device)
-            grad_estimate = grad_estimate + (cost_temp - cost) / mu * temp
+            dims = tuple(range(1, temp.ndim))
+            nrm  = torch.linalg.vector_norm(temp, ord=2, dim=dims, keepdim=True)
+            temp = temp / (nrm.clamp_min(1e-12))
+
+            temp_eta1 = eta + mu * temp
+            temp_eta1 = temp_eta1.to(device)
+            temp_image1 = ori_images + temp_eta1
+            outputs1 = model(temp_image1)
+            cost_temp1 = loss(outputs1, labels).to(device)
+
+            temp_eta2 = eta - mu * temp
+            temp_eta2 = temp_eta2.to(device)
+            temp_image2 = ori_images + temp_eta2
+            outputs2 = model(temp_image2)
+            cost_temp2 = loss(outputs2, labels).to(device)  
+
+            sign = torch.where(
+                cost_temp1 > cost_temp2,
+                torch.tensor(1.0, device=temp.device, dtype=temp.dtype),
+                torch.tensor(-1.0, device=temp.device, dtype=temp.dtype),
+            )
+            grad_estimate = grad_estimate + sign * temp
             grad_estimate = grad_estimate.detach_()
         grad_estimate = grad_estimate / pre_m
         grad_estimate = grad_estimate.detach_()
@@ -429,15 +454,6 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
         # zeroth-order estimation of Riemannian gradient
         grad_estimate = torch.zeros(images.size()).to(device)
         for j in range(m):
-            # temp = torch.randn(images.size()).to(device)
-            # temp = temp - torch.sum(torch.mul(temp, eta)) * eta / torch.norm(eta) ** 2  # projection
-            # temp_eta = (eta + mu * temp) / torch.norm(eta + mu * temp) * max_norm  # retraction
-            # temp_eta = temp_eta.to(device)
-            # temp_image = ori_images + temp_eta
-            # outputs = model(temp_image)
-            # cost_temp = loss(outputs, labels).to(device)
-            # grad_estimate = grad_estimate + (cost_temp - cost) / mu * temp
-            # grad_estimate = grad_estimate.detach_()
             temp = torch.randn(images.size()).to(device)
             temp = temp - torch.sum(torch.mul(temp, eta)) * eta / torch.norm(eta) ** 2  # projection
             dims = tuple(range(1, temp.ndim))
@@ -446,7 +462,6 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
 
             # trace_AtA = (temp ** 2).sum()
             # print(f"trace(A^T A) = {trace_AtA.item():.6f}")
-
 
             temp_eta1 = (eta + mu * temp) / torch.norm(eta + mu * temp) * max_norm  # retraction
             temp_eta1 = temp_eta1.to(device)
@@ -491,4 +506,92 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
         time_perturb[k + i] = time.time() - start
         
     return images, k + i, val_perturb, time_perturb
+
+
+def rd_attack_new(model, images, eta, labels, alpha=0.05, iters=2000, m=100, mu=1e-6):
+    # eta is the original pertubation
+    # the starting point is actually images+eta
+    max_norm = torch.norm(eta)
+    ori_images = images.data
+    # images = images + eta
+    eta = torch.randn(images.size()).to(device)
+    eta = eta / torch.norm(eta) * max_norm
+    images = images + eta
+    images = images.detach_()
+    images = images.to(device)
+    labels = labels.to(device)
+    loss = nn.CrossEntropyLoss()
+
+    val_perturb = np.zeros(iters)
+    time_perturb = np.zeros(iters)
+
+    best = float("-inf")
+    start = time.time()
+
+    print("Riemannian Dueling attack running, maximum perturbation norm", max_norm.cpu().data.numpy())
+    for k in range(iters):
+        # images.requires_grad = True
+        outputs = model(images)
+        _, pre = torch.max(outputs.data, 1)
+        if torch.eq(pre, labels) == 0:
+            return images, k, val_perturb, time_perturb
+
+        # model.zero_grad()
+        cost = loss(outputs, labels).to(device)
+        # cost.backward()
+
+        # zeroth-order estimation of Riemannian gradient
+        grad_estimate = torch.zeros(images.size()).to(device)
+        for j in range(m):
+            temp = torch.randn(images.size()).to(device)
+            temp = temp - torch.sum(torch.mul(temp, eta)) * eta / torch.norm(eta) ** 2  # projection
+            dims = tuple(range(1, temp.ndim))
+            nrm  = torch.linalg.vector_norm(temp, ord=2, dim=dims, keepdim=True)
+            temp = temp / (nrm.clamp_min(1e-12))
+
+            # trace_AtA = (temp ** 2).sum()
+            # print(f"trace(A^T A) = {trace_AtA.item():.6f}")
+
+            temp_eta1 = (eta + mu * temp) / torch.norm(eta + mu * temp) * max_norm  # retraction
+            temp_eta1 = temp_eta1.to(device)
+            temp_image1 = ori_images + temp_eta1
+            outputs1 = model(temp_image1)
+            cost_temp1 = loss(outputs1, labels).to(device)
+
+            temp_eta2 = (eta - mu * temp) / torch.norm(eta - mu * temp) * max_norm  # retraction
+            temp_eta2 = temp_eta2.to(device)
+            temp_image2 = ori_images + temp_eta2
+            outputs2 = model(temp_image2)
+            cost_temp2 = loss(outputs2, labels).to(device)  
+
+            sign = torch.where(
+                cost_temp1 > cost_temp2,
+                torch.tensor(1.0, device=temp.device, dtype=temp.dtype),
+                torch.tensor(-1.0, device=temp.device, dtype=temp.dtype),
+            )
+            grad_estimate = grad_estimate + sign * temp
+            grad_estimate = grad_estimate.detach_()
+
+        grad_estimate = grad_estimate / m
+        dims = tuple(range(1, grad_estimate.ndim))
+        nrm  = torch.linalg.vector_norm(grad_estimate, ord=2, dim=dims, keepdim=True)
+        grad_estimate = grad_estimate / (nrm.clamp_min(1e-12))
+        grad_estimate = grad_estimate.detach_()
+
+        # update
+        adv_images = images + alpha * grad_estimate
+
+        eta = adv_images - ori_images
+        eta = eta / torch.norm(eta) * max_norm
+        images = ori_images + eta
+        images = images.detach_()
+        print("RDueling attack iter: %s, loss function value: %f, distance from original image: %f" % (
+            k, cost.cpu().data.numpy(), torch.norm(images - ori_images).cpu().data.numpy()))
+
+        # keep best-so-far
+        best = max(best, cost.detach().item())
+        val_perturb[k] = best
+        time_perturb[k] = time.time() - start
+        
+    return images, k, val_perturb, time_perturb
 
