@@ -114,13 +114,12 @@ def main():
 
     model.eval()
 
-    correct = 0
     total = 0
 
     for images, labels in dataiter:
         total += 1
         # print("Processing image number: %s" % total)
-        if total == 12:
+        if total == 10:
             # show image and label
             images = images.to(device)
             labels = labels.to(device)
@@ -176,20 +175,20 @@ def main():
             distance = images.cpu() - ori_images.cpu()
             print('R-attack: Distance of the attack example to original image:', np.linalg.norm(distance.cpu().data.numpy()))
 
-            # # Riemannian ZO attack
-            # images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
-            # labels = labels.to(device)
-            # outputs = model(images)
+            # Riemannian ZO attack
+            images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
+            labels = labels.to(device)
+            outputs = model(images)
 
-            # _, pre = torch.max(outputs.data, 1)
+            _, pre = torch.max(outputs.data, 1)
 
-            # # total += 1
-            # # correct += (pre == labels).sum()
+            # total += 1
+            # correct += (pre == labels).sum()
 
-            # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RZO')
-            # distance = images.cpu() - ori_images.cpu()
-            # print('RZO-attack: Distance of the attack example to original image:',
-            #       np.linalg.norm(distance.cpu().data.numpy()))
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],total,'RZO')
+            distance = images.cpu() - ori_images.cpu()
+            print('RZO-attack: Distance of the attack example to original image:',
+                  np.linalg.norm(distance.cpu().data.numpy()))
 
             # Riemannian Dueling attack
             images, i5, val_perturb_rd, time_perturb_5 = rd_attack(model, ori_images, labels, m=10)
@@ -217,7 +216,7 @@ def main():
     ax.plot(range(i1), val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(range(i2), val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(range(i3), val_perturb_r[:i3], 'k--',label='White-box Riemannian')
-    # ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
+    ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
     ax.plot(range(i5), val_perturb_rd[:i5], 'g:',label='Black-box Dueling Riemannian')
     ax.set(xlabel='Number of iteration', ylabel='Loss value',
            title='Loss value')
@@ -236,7 +235,7 @@ def main():
     ax.plot(time_perturb_1[:i1], val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(time_perturb_2[:i2], val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(time_perturb_3[:i3], val_perturb_r[:i3], 'k--', label='White-box Riemannian')
-    # ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
+    ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
     ax.plot(time_perturb_5[:i5], val_perturb_rd[:i5], 'g:',label='Black-box Dueling Riemannian')
     ax.set(xlabel='CPU time', ylabel='Loss value',
            title='Loss value')

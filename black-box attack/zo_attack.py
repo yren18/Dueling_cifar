@@ -297,8 +297,6 @@ def rzo_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.1, pre_i
         print("RZO pre_attack iteration: %s, loss function value: %f, distance from original image: %f" % (
             k, val_perturb[k], torch.norm(images - ori_images).cpu().data.numpy()))
 
-    k = k + 1
-
     print("Scheme 2: optimization on the ball")
     for i in range(iters):
         # images.requires_grad = True
