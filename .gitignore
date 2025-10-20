@@ -1,3 +1,6 @@
 black-box attack/data/cifar-10-python.tar.gz
 synthetic datasynthetic data/
-black-box attack/data/cifar-10-python.tar.gz
+check_images.py
+data/cifar-10-batches-py/
+data/cifar-10-python.tar.gz
+samples/

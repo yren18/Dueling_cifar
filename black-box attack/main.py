@@ -12,7 +12,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 # matplotlib inline
 # from zo_attack import *
-from zo_attack import pgd_attack, zo_attack, r_attack, rzo_attack, imshow
+from zo_attack import pgd_attack, zo_attack, r_attack, rzo_attack, rd_attack, imshow
 import zo_attack as _zo
 # import cifar10_models as cm
 
@@ -177,47 +177,73 @@ def main():
             distance = images.cpu() - ori_images.cpu()
             print('R-attack: Distance of the attack example to original image:', np.linalg.norm(distance.cpu().data.numpy()))
 
-            # # Riemannian ZO attack
-            # images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
-            # labels = labels.to(device)
-            # outputs = model(images)
+            # Riemannian ZO attack
+            images, i4, val_perturb_rzo, time_perturb_4 = rzo_attack(model, ori_images, labels, m=500)
+            labels = labels.to(device)
+            outputs = model(images)
 
-            # _, pre = torch.max(outputs.data, 1)
+            _, pre = torch.max(outputs.data, 1)
 
-            # total += 1
-            # correct += (pre == labels).sum()
+            total += 1
+            correct += (pre == labels).sum()
 
-            # imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RZO')
-            # distance = images.cpu() - ori_images.cpu()
-            # print('RZO-attack: Distance of the attack example to original image:',
-            #       np.linalg.norm(distance.cpu().data.numpy()))
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RZO')
+            distance = images.cpu() - ori_images.cpu()
+            print('RZO-attack: Distance of the attack example to original image:',
+                  np.linalg.norm(distance.cpu().data.numpy()))
+
+            # Riemannian Dueling attack
+            images, i5, val_perturb_rd, time_perturb_5 = rd_attack(model, ori_images, labels, m=500)
+            labels = labels.to(device)
+            outputs = model(images)
+
+            _, pre = torch.max(outputs.data, 1)
+
+            total += 1
+            correct += (pre == labels).sum()
+
+            imshow(torchvision.utils.make_grid(images.cpu().data, normalize=True), [classes[i] for i in pre],'RDueling')
+            distance = images.cpu() - ori_images.cpu()
+            print('RDueling-attack: Distance of the attack example to original image:',
+                  np.linalg.norm(distance.cpu().data.numpy()))
 
             break
 
+    save_dir = os.path.join(os.getcwd(), "results")
+    os.makedirs(save_dir, exist_ok=True)
 
     fig, ax = plt.subplots()
     plt.xscale('symlog')
     ax.plot(range(i1), val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(range(i2), val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(range(i3), val_perturb_r[:i3], 'k--',label='White-box Riemannian')
-    # ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
+    ax.plot(range(i4), val_perturb_rzo[:i4], 'b:',label='Black-box ZO Riemannian')
+    ax.plot(range(i5), val_perturb_rd[:i5], 'g:',label='Black-box Dueling Riemannian')
     ax.set(xlabel='Number of iteration', ylabel='Loss value',
            title='Loss value')
     ax.legend(loc='upper left')
     ax.grid()
-    plt.show()
+    # Save figure to pwd/results
+    plot_path1 = os.path.join(save_dir, "loss_vs_iteration.png")
+    plt.savefig(plot_path1, dpi=300, bbox_inches='tight')
+    print(f"Saved: {plot_path1}")
+    plt.close(fig)   # close to free memory
 
     fig, ax = plt.subplots()
     plt.xscale('symlog')
     ax.plot(time_perturb_1[:i1], val_perturb_pgd[:i1], 'r--', label='White-box PGD')
     # ax.plot(time_perturb_2[:i2], val_perturb_zo[:i2], 'g--', label='Black-box ZO PGD')
     ax.plot(time_perturb_3[:i3], val_perturb_r[:i3], 'k--', label='White-box Riemannian')
-    # ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
+    ax.plot(time_perturb_4[:i4], val_perturb_rzo[:i4], 'b:', label='Black-box ZO Riemannian')
+    ax.plot(time_perturb_5[:i5], val_perturb_rd[:i5], 'g:',label='Black-box Dueling Riemannian')
     ax.set(xlabel='CPU time', ylabel='Loss value',
            title='Loss value')
     ax.legend(loc='upper left')
     ax.grid()
-    plt.show()
+    plot_path2 = os.path.join(save_dir, "loss_vs_time.png")
+    plt.savefig(plot_path2, dpi=300, bbox_inches='tight')
+    print(f"Saved: {plot_path2}")
+    plt.close(fig)
 
 
 
