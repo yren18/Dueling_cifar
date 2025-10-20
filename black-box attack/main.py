@@ -193,7 +193,7 @@ def main():
                   np.linalg.norm(distance.cpu().data.numpy()))
 
             # Riemannian Dueling attack
-            images, i5, val_perturb_rd, time_perturb_5 = rd_attack(model, ori_images, labels, m=500)
+            images, i5, val_perturb_rd, time_perturb_5 = rd_attack(model, ori_images, labels, m=100)
             labels = labels.to(device)
             outputs = model(images)
 
@@ -227,7 +227,7 @@ def main():
     plot_path1 = os.path.join(save_dir, "loss_vs_iteration.png")
     plt.savefig(plot_path1, dpi=300, bbox_inches='tight')
     print(f"Saved: {plot_path1}")
-    plt.close(fig)   # close to free memory
+    plt.close(fig)
 
     fig, ax = plt.subplots()
     plt.xscale('symlog')

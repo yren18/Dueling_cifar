@@ -339,6 +339,8 @@ def rzo_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_
         val_perturb[k + i] = cost.cpu().data.numpy()
         time_perturb[k + i] = time.time() - start
 
+
+
     return images, k + i, val_perturb, time_perturb
 
 #Riemannian Dueling attack
@@ -359,6 +361,9 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
     val_perturb = np.zeros(pre_iter + iters)
     time_perturb = np.zeros(pre_iter + iters)
     k = 0
+
+    # --- running best-so-far (lower is better) ---
+    best = float("-inf")
 
     print("Riemannian Dueling attack running, maximum perturbation norm", max_norm.cpu().data.numpy())
     print("Scheme 1: escaping from the original image")
@@ -398,13 +403,16 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
             break
         else:
             images = ori_images + eta
-        val_perturb[k] = cost.cpu().data.numpy()
+
+        # keep best-so-far
+        best = max(best, cost.detach().item())
+        val_perturb[k] = best
         time_perturb[k] = time.time() - start
 
         print("RDueling pre_attack iteration: %s, loss function value: %f, distance from original image: %f" % (
             k, val_perturb[k], torch.norm(images - ori_images).cpu().data.numpy()))
 
-    k = k + 1
+    # k = k + 1
 
     print("Scheme 2: optimization on the ball")
     for i in range(iters):
@@ -436,6 +444,10 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
             nrm  = torch.linalg.vector_norm(temp, ord=2, dim=dims, keepdim=True)
             temp = temp / (nrm.clamp_min(1e-12))
 
+            # trace_AtA = (temp ** 2).sum()
+            # print(f"trace(A^T A) = {trace_AtA.item():.6f}")
+
+
             temp_eta1 = (eta + mu * temp) / torch.norm(eta + mu * temp) * max_norm  # retraction
             temp_eta1 = temp_eta1.to(device)
             temp_image1 = ori_images + temp_eta1
@@ -450,14 +462,17 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
 
             # grad_estimate = grad_estimate + (cost_temp - cost) / mu * temp
             sign = torch.where(
-                cost_temp1 < cost_temp2,
+                cost_temp1 > cost_temp2,
                 torch.tensor(1.0, device=temp.device, dtype=temp.dtype),
                 torch.tensor(-1.0, device=temp.device, dtype=temp.dtype),
             )
-            grad_estimate = sign * temp
+            grad_estimate = grad_estimate + sign * temp
             grad_estimate = grad_estimate.detach_()
 
         grad_estimate = grad_estimate / m
+        dims = tuple(range(1, grad_estimate.ndim))
+        nrm  = torch.linalg.vector_norm(grad_estimate, ord=2, dim=dims, keepdim=True)
+        grad_estimate = grad_estimate / (nrm.clamp_min(1e-12))
         grad_estimate = grad_estimate.detach_()
 
         # update
@@ -470,7 +485,10 @@ def rd_attack(model, images, labels, eps=0.05, alpha=1e-3, pre_alpha=0.05, pre_i
         print("RDueling attack iter: %s, loss function value: %f, distance from original image: %f" % (
             i, cost.cpu().data.numpy(), torch.norm(images - ori_images).cpu().data.numpy()))
 
-        val_perturb[k + i] = cost.cpu().data.numpy()
+        # keep best-so-far
+        best = max(best, cost.detach().item())
+        val_perturb[k + i] = best
         time_perturb[k + i] = time.time() - start
-
+        
     return images, k + i, val_perturb, time_perturb
+
