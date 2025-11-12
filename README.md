@@ -1,9 +1,27 @@
-# Dueling Attack
+# Dueling-Based Optimization Applications
 
- This project implements a dueling-based black-box attack on CIFAR datasets, where the attacker learns through comparative feedback rather than explicit gradients or loss values. The method builds on comparison-oracle optimization, simulating human-like preference judgments (“image A looks more adversarial than image B”) to iteratively craft adversarial examples that fool the target model.
+This repository contains two applications built on **dueling (comparison-oracle) optimization** — a paradigm where learning occurs through *comparative* feedback rather than direct gradient or function-value access.  
+Both applications demonstrate how preference-based optimization can effectively solve real-world problems in computer vision and geometry.
 
+---
 
-## Example
+## 1. Overview
+
+This repository consists of two main experimental applications:
+
+1. **Dueling Attack on Deep Neural Networks (CIFAR-10)** — a comparison-oracle–based black-box adversarial attack.
+2. **Horizon-Leveling Optimization on SO(2)** — a geometric optimization problem for horizon correction in tilted images, solved via dueling optimization on the rotation group SO(2).
+
+Each application is self-contained, and their respective results are stored under dedicated folders (`results/` for the CIFAR attack and `horizon/result/` for the horizon correction task).
+
+---
+
+## 2. Dueling Attack on Deep Neural Networks
+
+This project implements a dueling-based black-box attack on CIFAR datasets, where the attacker learns through comparative feedback rather than explicit gradients or loss values.  
+The method builds on comparison-oracle optimization, simulating human-like preference judgments (“image A looks more adversarial than image B”) to iteratively craft adversarial examples that fool the target model.
+
+### Example
 
 The following example demonstrates an experimental result, where images starting with the prefix `1_` in the `results/` folder are combined into a 6-panel comparison figure.  
 The six subplots represent:
@@ -15,7 +33,7 @@ The six subplots represent:
 (d) Riemannian Gradient Descent (RGD) attack result  
 
 **Zeroth-order methods** (require function values only):  
-(e) RZO attack result
+(e) RZO attack result  
 
 **Comparison-oracle method:**  
 (c) Riemannian Dueling (R-Dueling) attack result  
@@ -23,3 +41,31 @@ The six subplots represent:
 (f) Loss vs. iteration
 
 ![Example Results (a)-(f)](results/1_figure.png)
+
+---
+
+## 3. Horizon-Leveling Optimization on SO(2)
+
+The second application extends the dueling-oracle framework to a **geometric vision problem** — estimating the correct horizon alignment of a tilted image.  
+Here, the optimization variable lies on the **special orthogonal group SO(2)** (the 2D rotation manifold).  
+Instead of using ground-truth rotation angles or gradient information, the algorithm learns from pairwise *comparisons* of horizon alignment quality.
+
+### Description
+
+- The optimizer starts from an initial rotation (0°) and iteratively queries a dueling oracle that provides comparative feedback — e.g., “rotation A looks more level than rotation B.”  
+- The method efficiently converges to the optimal correction angle, even without access to true function values or gradients.  
+- Numerical results show robust and accurate horizon correction on natural images.
+
+### Example
+
+The following example uses results from the `horizon/result/` directory.  
+The two figures below illustrate a sample image correction and its optimization curve.
+
+<p align="center">
+  <img src="horizon/result/1206735042_18e861842b_o_before_and_after.png" alt="Before and After" width="46%"/>
+  <img src="horizon/result/1206735042_18e861842b_o_loss_vs_iteration.png" alt="Loss Curve" width="46%"/>
+</p>
+
+**Left:** Original and corrected images (before and after rotation).  
+**Right:** Convergence curve showing objective value vs. iteration.
+
