@@ -8,11 +8,18 @@
 The following example demonstrates an experimental result, where images starting with the prefix `1_` in the `results/` folder are combined into a 6-panel comparison figure.  
 The six subplots represent:
 
-(a) Original image  
-(b) PGD attack result  
-(c) R-Dueling attack result  
-(d) RGD attack result  
-(e) RZO attack result  
-(f) Loss vs iteration  
+(a) **Original image**
+
+**First-order methods** (require gradient information):  
+(b) Projected Gradient Descent (PGD) attack result  
+(d) Riemannian Gradient Descent (RGD) attack result  
+
+**Zeroth-order methods** (require function values only):  
+(e) RZO attack result
+
+**Comparison-oracle method:**  
+(c) Riemannian Dueling (R-Dueling) attack result  
+
+(f) Loss vs. iteration
 
 ![Example Results (a)-(f)](results/1_figure.png)

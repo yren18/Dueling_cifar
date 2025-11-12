@@ -5,3 +5,13 @@ data/cifar-10-batches-py/
 data/cifar-10-python.tar.gz
 samples/
 .DS_Store
+
+__pycache__/
+*.pyc
+*.pyo
+*.pt
+*.pth
+*.npy
+*.npz
+*.pkl
+*.log
