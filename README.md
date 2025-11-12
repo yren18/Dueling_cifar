@@ -16,5 +16,3 @@ The six subplots represent:
 (f) Loss vs iteration  
 
 ![Example Results (a)-(f)](results/1_figure.png)
-
-**Note:** To visualize a different sample (e.g., one starting with `2_`), change `prefix = "1_"` to `prefix = "2_"` in the script and rerun it.
