@@ -1,3 +1,20 @@
 # Dueling Attack
 
  This project implements a dueling-based black-box attack on CIFAR datasets, where the attacker learns through comparative feedback rather than explicit gradients or loss values. The method builds on comparison-oracle optimization, simulating human-like preference judgments (“image A looks more adversarial than image B”) to iteratively craft adversarial examples that fool the target model.
+
+
+## Example
+
+The following example demonstrates an experimental result, where images starting with the prefix `1_` in the `results/` folder are combined into a 6-panel comparison figure.  
+The six subplots represent:
+
+(a) Original image  
+(b) PGD attack result  
+(c) R-Dueling attack result  
+(d) RGD attack result  
+(e) RZO attack result  
+(f) Loss vs iteration  
+
+![Example Results (a)-(f)](results/1_figure.png)
+
+**Note:** To visualize a different sample (e.g., one starting with `2_`), change `prefix = "1_"` to `prefix = "2_"` in the script and rerun it.
