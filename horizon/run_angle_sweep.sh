@@ -5,8 +5,10 @@
 #   bash run_angle_sweep.sh
 # ===========================================
 
-for min in 5 10 15 20 25 30 35 40; do
-  max=$((min+5))
+#!/bin/bash
+
+for min in $(seq 5 2.5 40); do
+  max=$(echo "$min + 2.5" | bc)
   echo ">>> Running for range [$min, $max] ..."
   python main.py --min_deg $min --max_deg $max --save --show false
 done
