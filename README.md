@@ -62,8 +62,8 @@ The following example uses results from the `horizon/result/` directory.
 The two figures below illustrate a sample image correction and its optimization curve.
 
 <p align="center">
-  <img src="horizon/result/3744673249_79bcf131fc_o_before_and_after.png" alt="Before and After" width="46%"/>
   <img src="horizon/result/3744673249_79bcf131fc_o_loss_vs_iteration.png" alt="Loss Curve" width="46%"/>
+  <img src="horizon/result/3744673249_79bcf131fc_o_before_and_after.png" alt="Before and After" width="46%"/>
 </p>
 
 **Left:** Original and corrected images (before and after rotation).  
