@@ -66,6 +66,17 @@ The two figures below illustrate a sample image correction and its optimization 
   <img src="horizon/result/3744673249_79bcf131fc_o_before_and_after.png" alt="Before and After" width="46%"/>
 </p>
 
-**Left:** Original and corrected images (before and after rotation).  
-**Right:** Convergence curve showing objective value vs. iteration.
+**Left:** Convergence curve showing objective value vs. iteration.
+**Right:** Original and corrected images (before and after rotation).  
+
+## 5. Environment Setup
+
+Both the **CIFAR Dueling Attack** and the **Horizon-Leveling Optimization** experiments were implemented in Python using PyTorch and manifold optimization libraries.  
+To ensure reproducibility, we recommend using a Conda environment with Python 3.10.
+
+### Installation
+Create and activate a new environment and install the dependencies:
+```bash
+pip install -r requirements.txt
+```
 
