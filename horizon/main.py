@@ -19,18 +19,6 @@ def load_horizon_points(csv_path, prefix="0006/"):
     return horizon_dict
 
 
-def rotate_image(img, theta_deg):
-    """Rotate image by theta degrees (positive = CCW)."""
-    h, w = img.shape[:2]
-    M = cv2.getRotationMatrix2D((w / 2.0, h / 2.0), theta_deg, 1.0)
-    rotated = cv2.warpAffine(
-        img, M, (w, h),
-        flags=cv2.INTER_LINEAR,
-        borderMode=cv2.BORDER_REFLECT_101,
-    )
-    return rotated
-
-
 def main():
     parser = argparse.ArgumentParser(
         description="Run Dueling Optimization on SO(2) for horizon correction."
@@ -45,9 +33,9 @@ def main():
                         default=True,
                         help="Whether to display plots (True/False, default: True)")
     args = parser.parse_args()
-
     min_deg = args.min_deg
     max_deg = args.max_deg
+
 
     # Dataset parameters
     DATA_ROOT = "hlw"
@@ -72,9 +60,9 @@ def main():
 
     # Select subset
     selected_list = [(fname, deg, theta) for fname, deg, theta in angles_list if min_deg <= deg <= max_deg]
-    print(f"Number of images in [{min_deg}°, {max_deg}°]: {len(selected_list)}")
-    for item in selected_list:
-        print(item)
+    # print(f"Number of images in [{min_deg}°, {max_deg}°]: {len(selected_list)}")
+    # for item in selected_list:
+    #     print(item)
 
     filename = selected_list[0][0]  # pick first image
     base_name = os.path.splitext(filename)[0]  # e.g. 2680766258_66b5a9fcbf_o
@@ -92,22 +80,24 @@ def main():
     best_theta_deg = np.degrees(so2_to_angle(log["R_best"]))
 
     print("\n=======================================")
+    print(f"[Result] True horizon angle (deg): {np.degrees(oracle.optimal_degree):.2f}")
     print(f"[Result] Final angle (deg): {final_theta_deg:.2f}")
     print(f"[Result] Best-so-far angle (deg): {best_theta_deg:.2f}")
     print(f"[Result] f_best: {log['f_best']:.6f}")
     print("=======================================")
 
-    # Prepare result directory
+    # Plot and save result
     RESULT_DIR = os.path.join(os.getcwd(), "result")
     if args.save:
         os.makedirs(RESULT_DIR, exist_ok=True)
 
-    # === Figure 1: Loss curve ===
+    # Plot Loss curve
     fig1 = plt.figure(figsize=(6, 4))
-    plt.plot(log["f_seq"], label="f(R_t)")
-    plt.plot(log["f_best_seq"], label="best so far", linestyle="--")
+    # plt.plot(log["f_seq"], label="f(R_t)")
+    plt.plot(log["f_best_seq"], label="RDueling", linestyle="-",linewidth=2)
     plt.xlabel("Iteration")
-    plt.ylabel("f value")
+    plt.ylabel(r"$f(R_t) - f^*$")
+    plt.yscale("log") 
     plt.legend()
     plt.title(f"Figure 1: Loss vs Iteration ({base_name})")
 
@@ -116,7 +106,7 @@ def main():
         fig1.savefig(fig1_path, dpi=300, bbox_inches="tight")
         print(f"[Saved] Figure 1 → {fig1_path}")
 
-    # === Figure 2: Original vs Rotated ===
+    # Plot Original vs Rotated
     img_path = os.path.join(DATA_ROOT, "images", FOLDER_PREFIX, filename)
     img = cv2.imread(img_path)
     if img is None:
@@ -141,8 +131,6 @@ def main():
         fig2_path = os.path.join(RESULT_DIR, f"{base_name}_before_and_after.png")
         fig2.savefig(fig2_path, dpi=300, bbox_inches="tight")
         print(f"[Saved] Figure 2 → {fig2_path}")
-
-    # === Show both figures together ===
     if args.show:
         plt.show()
     else:

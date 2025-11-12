@@ -6,6 +6,7 @@ class SO2Objective:
         Initialize with a fixed true horizon angle.
         Ground-truth optimal rotation is R* = R(-theta_true).
         """
+        self.optimal_degree = -theta_true
         self.R_star = angle_to_so2(-theta_true)
 
     @classmethod

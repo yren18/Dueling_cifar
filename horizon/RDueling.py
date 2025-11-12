@@ -4,11 +4,11 @@ import so2_objective
 
 
 class RDueling:
-    def __init__(self, oracle, lr=0.1, delta=0.05, T=100):
+    def __init__(self, oracle, lr=1e-2, delta=0.05, T=100):
         """
         oracle: an object with .f(R), .exp(R, omega), .sample_unit_tangent(R)
-        lr: learning rate for updates
-        delta: exploration step size
+        lr: stepsize
+        delta: pertubation scale
         T: number of iterations
         """
         self.oracle = oracle
@@ -17,7 +17,9 @@ class RDueling:
         self.T = T
 
     def run(self, R0):
-        """Run dueling optimization starting from R0."""
+        """
+        Run Riemannian dueling optimization with initial point R0.
+        """
         R_current = R0
         theta_seq = []      # store angle trajectory
         f_seq = []          # store raw function values
@@ -50,14 +52,13 @@ class RDueling:
             f_seq.append(f_val)
 
             # Track best-so-far (dueling version)
-
             if self.oracle.f(R_best) > self.oracle.f(R_current):
                 R_best = R_current
                 f_best = f_val
 
             f_best_seq.append(f_best)
 
-        # Return everything needed
+        # Return output
         return {
             "R_final": R_current,
             "R_best": R_best,

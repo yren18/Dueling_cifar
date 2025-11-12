@@ -5,6 +5,7 @@ data/cifar-10-batches-py/
 data/cifar-10-python.tar.gz
 samples/
 .DS_Store
+rsync_local.sh
 
 __pycache__/
 *.pyc
