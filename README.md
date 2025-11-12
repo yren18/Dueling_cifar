@@ -30,13 +30,13 @@ The six subplots represent:
 
 **First-order methods** (require gradient information):  
 (b) Projected Gradient Descent (PGD) attack result  
-(d) Riemannian Gradient Descent (RGD) attack result  
+(c) Riemannian Gradient Descent (RGD) attack result  
 
 **Zeroth-order methods** (require function values only):  
-(e) RZO attack result  
+(d) Riemannian Zeroth Order (RZO) attack result  
 
 **Comparison-oracle method:**  
-(c) Riemannian Dueling (R-Dueling) attack result  
+(e) Riemannian Dueling (R-Dueling) attack result  
 
 (f) Loss vs. iteration
 
@@ -126,3 +126,5 @@ The dataset used for the **Horizon-Leveling Optimization** experiments is the **
 
 > *Note:* The **CIFAR-10** dataset used in the *Dueling Attack* experiments is a public benchmark dataset originally introduced by **Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton** (2009).  
 > [CIFAR-10 Dataset Page](https://www.cs.toronto.edu/~kriz/cifar.html)
+
+
