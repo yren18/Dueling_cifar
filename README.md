@@ -80,3 +80,49 @@ Create and activate a new environment and install the dependencies:
 pip install -r requirements.txt
 ```
 
+## 6. Acknowledgements and References
+
+This repository builds upon previous open-source research projects and datasets.  
+We acknowledge their contributions below.
+
+### Code Base
+
+Parts of the manifold and zeroth-order optimization framework are adapted from the following open-source implementation:
+
+> **Zeroth-order-Riemannian**  
+> Jiaxiang Li, Krishnakumar Balasubramanian, and Shiqian Ma.  
+> *Stochastic Zeroth-Order Riemannian Derivative Estimation and Optimization.*  
+> arXiv preprint arXiv:2003.11238, 2020.  
+> [GitHub Repository](https://github.com/JasonJiaxiangLi/Zeroth-order-Riemannian)
+
+**BibTeX:**
+```bibtex
+@article{li2020stochastic,
+  title={Stochastic zeroth-order riemannian derivative estimation and optimization},
+  author={Li, Jiaxiang and Balasubramanian, Krishnakumar and Ma, Shiqian},
+  journal={arXiv preprint arXiv:2003.11238},
+  year={2020}
+}
+```
+
+### Dataset
+
+The dataset used for the **Horizon-Leveling Optimization** experiments is the **Horizon Lines in the Wild (HLW)** dataset, introduced in:
+
+> **Horizon Lines in the Wild**  
+> Scott Workman, Menghua Zhai, and Nathan Jacobs.  
+> *British Machine Vision Conference (BMVC)*, 2016.  
+> [Project Page](http://hlw.csr.uky.edu)
+
+**BibTeX:**
+```bibtex
+@inproceedings{workman2016horizon,
+  author={Workman, Scott and Zhai, Menghua and Jacobs, Nathan},
+  title={Horizon Lines in the Wild},
+  booktitle={British Machine Vision Conference (BMVC)},
+  year={2016}
+}
+```
+
+> *Note:* The **CIFAR-10** dataset used in the *Dueling Attack* experiments is a public benchmark dataset originally introduced by **Alex Krizhevsky, Vinod Nair, and Geoffrey Hinton** (2009).  
+> [CIFAR-10 Dataset Page](https://www.cs.toronto.edu/~kriz/cifar.html)
