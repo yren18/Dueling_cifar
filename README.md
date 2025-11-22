@@ -18,8 +18,9 @@ Each application is self-contained, and their respective results are stored unde
 
 ## 2. Dueling Attack on Deep Neural Networks
 
-This project implements a dueling-based black-box attack on CIFAR datasets, where the attacker learns through comparative feedback rather than explicit gradients or loss values.  
-The method builds on comparison-oracle optimization, simulating human-like preference judgments (“image A looks more adversarial than image B”) to iteratively craft adversarial examples that fool the target model.
+This project implements a dueling-based black-box attack on the CIFAR-10 dataset, where the attacker learns from pairwise comparison feedback rather than explicit gradients or loss values. Given two perturbed images, the system queries the target VGG classifier only to determine which image results in a higher loss, without ever observing the actual loss magnitude.
+
+The method builds on comparison-oracle (dueling) optimization, using these binary “which is worse?” outcomes to guide a zeroth-order search for adversarial perturbations. This formulation allows the attacker to iteratively craft adversarial examples that fool the model while keeping perturbations visually imperceptible, all without accessing the target model’s loss function.
 
 ### Example
 
@@ -31,6 +32,8 @@ The six subplots represent:
 **First-order methods** (require gradient information):  
 (b) Projected Gradient Descent (PGD) attack result  
 (c) Riemannian Gradient Descent (RGD) attack result  
+
+*These first-order baselines are shown for reference only—such methods are not feasible in our black-box setting because the target network does not return gradients to the attacker.*
 
 **Zeroth-order methods** (require function values only):  
 (d) Riemannian Zeroth Order (RZO) attack result  
@@ -46,9 +49,9 @@ The six subplots represent:
 
 ## 3. Horizon-Leveling Optimization on SO(2)
 
-The second application extends the dueling-oracle framework to a **geometric vision problem** — estimating the correct horizon alignment of a tilted image.  
-Here, the optimization variable lies on the **special orthogonal group SO(2)** (the 2D rotation manifold).  
-Instead of using ground-truth rotation angles or gradient information, the algorithm learns from pairwise *comparisons* of horizon alignment quality.
+The second application extends the dueling-oracle framework to a geometric vision problem involving the estimation of the correct horizon alignment of a tilted image.
+The optimization variable lies on the special orthogonal group SO(2), representing the 2D rotation manifold.
+Instead of using ground-truth rotation angles or accessing any loss or score value, the algorithm relies solely on a comparison oracle: given two candidate rotations, it determines which one produces a better horizon alignment. These pairwise preferences are then used to guide a zeroth-order search on SO(2) and recover the optimal rotation angle.
 
 ### Description
 
