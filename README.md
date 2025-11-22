@@ -12,7 +12,7 @@ This repository consists of two main experimental applications:
 1. **Dueling Attack on Deep Neural Networks (CIFAR-10)** — a comparison-oracle–based black-box adversarial attack.
 2. **Horizon-Leveling Optimization on SO(2)** — a geometric optimization problem for horizon correction in tilted images, solved via dueling optimization on the rotation group SO(2).
 
-Each application is self-contained, and their respective results are stored under dedicated folders (`results/` for the CIFAR attack and `horizon/result/` for the horizon correction task).
+Each application is self-contained, and their respective results are stored under dedicated folders (`results/` for the VCG model attack evaluated on CIFAR-10 dataset and `horizon/result/` for the horizon correction task).
 
 ---
 
@@ -55,9 +55,11 @@ Instead of using ground-truth rotation angles or accessing any loss or score val
 
 ### Description
 
-- The optimizer starts from an initial rotation (0°) and iteratively queries a dueling oracle that provides comparative feedback — e.g., “rotation A looks more level than rotation B.”  
-- The method efficiently converges to the optimal correction angle, even without access to true function values or gradients.  
-- Numerical results show robust and accurate horizon correction on natural images.
+- The optimizer starts from an initial rotation (0°) and iteratively queries a comparison oracle.  
+- Given two candidate rotations A and B, the oracle evaluates their corresponding images and returns which one yields better horizon alignment.  
+- This preference signal is often more reliable than directly using potentially noisy function values, and it allows the method to perform zeroth-order optimization on SO(2) and efficiently converge to the correct correction angle.  
+- Numerical results demonstrate robust and accurate horizon correction on natural images.
+
 
 ### Example
 
@@ -74,7 +76,7 @@ The two figures below illustrate a sample image correction and its optimization 
 
 ## 5. Environment Setup
 
-Both the **CIFAR Dueling Attack** and the **Horizon-Leveling Optimization** experiments were implemented in Python using PyTorch and manifold optimization libraries.  
+Both the **VCG model Dueling Attack** and the **Horizon-Leveling Optimization** experiments were implemented in Python using PyTorch and manifold optimization libraries.  
 To ensure reproducibility, we recommend using a Conda environment with Python 3.10.
 
 ### Installation
